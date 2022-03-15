@@ -8,8 +8,8 @@ import sys  # In order to terminate the program
 server_socket = socket(AF_INET, SOCK_STREAM)
 
 # Prepare a server socket
-server_port = 4096
-server_socket.bind(('', server_port))
+server_port = 6789
+server_socket.bind(('127.0.0.1', server_port))
 server_socket.listen(1)
 while True:
     # Establish the connection
@@ -17,19 +17,20 @@ while True:
     connectionSocket, addr = server_socket.accept()
     try:
         # Receives the request message from the client
-        message = connectionSocket.recv(4096).decode()
+        message = connectionSocket.recv(6789).decode()
         filename = message.split()[1]
-        f = open(filename, 'r', encoding='utf-8')
+        f = open(filename[1:])
 
         # Store the entire content of the requested file in a temporary variable
         Output_data = f.read()
 
         # Send one HTTP header line into socket
-        connectionSocket.send("HTTP/1.1 200 OK \r\n\r\n")
+        connectionSocket.send(b"HTTP/1.1 200 OK \r\n\r\n")
+        print("HTTP/1.1 200 OK")
 
         # Send the content of the requested file to the client
         for i in range(0, len(Output_data)):
-            connectionSocket.send(Output_data[i].encode())
+            connectionSocket.sendall(Output_data[i].encode())
 
         connectionSocket.send("\r\n".encode())
 
@@ -37,8 +38,8 @@ while True:
 
     except IOError:
         # Send response message for file not found
-        print("IOERROR")
-        connectionSocket.send("HTTP/1.1 404 FILE NOT FOUND \r\n\r\n")
+        print("HTTP/1.1 404 FILE NOT FOUND")
+        connectionSocket.send(b"HTTP/1.1 404 FILE NOT FOUND \r\n\r\n")
 
     # Close client socket
     connectionSocket.close()
